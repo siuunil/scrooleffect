@@ -16,7 +16,6 @@ window.addEventListener("load", () => {
       img.onload = function () {
         images[i - 1] = img;
         loadedImageCount++;
-
         if (loadedImageCount === totalSlides) {
           initializeScene();
         }
@@ -42,18 +41,18 @@ window.addEventListener("load", () => {
 
     const renderer = new THREE.WebGLRenderer({
       canvas: document.querySelector("canvas"),
-      antialias: true,
+      antialias: false,
       powerPreference: "high-performance",
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.setClearColor(0x0a0a0a);
 
     const parentWidth = 20;
     const parentHeight = 180;
     const curvature = 35;
-    const segmentsX = 200;
-    const segmentsY = 200;
+    const segmentsX = 60;
+    const segmentsY = 120;
 
     const parentGeometry = new THREE.PlaneGeometry(
       parentWidth,
@@ -79,15 +78,15 @@ window.addEventListener("load", () => {
       alpha: false,
       willReadFrequently: false,
     });
-    textureCanvas.width = 2048;
-    textureCanvas.height = 16384;
+    textureCanvas.width = 1024;
+    textureCanvas.height = 8192;
 
     const texture = new THREE.CanvasTexture(textureCanvas);
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
     texture.minFilter = THREE.LinearFilter;
     texture.magFilter = THREE.LinearFilter;
-    texture.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
+    texture.anisotropy = Math.min(2, renderer.capabilities.getMaxAnisotropy());
 
     const parentMaterial = new THREE.MeshBasicMaterial({
       map: texture,
@@ -111,11 +110,77 @@ window.addEventListener("load", () => {
 
     const slideTitle = "Love";
 
+    // Pre-render slide images to offscreen canvases so we don't re-process them each frame
+    const slideCanvases = [];
+    const slideRectHeight = (slideHeight / cycleHeight) * textureCanvas.height;
+    const slideRectWidth = textureCanvas.width * 0.9;
+
+    for (let s = 0; s < totalSlides; s++) {
+      const offscreen = document.createElement("canvas");
+      offscreen.width = Math.round(slideRectWidth);
+      offscreen.height = Math.round(slideRectHeight);
+      const offCtx = offscreen.getContext("2d");
+
+      const img = images[s];
+      if (img) {
+        const imgAspect = img.width / img.height;
+        const rectAspect = offscreen.width / offscreen.height;
+
+        let drawWidth, drawHeight, drawX, drawY;
+        if (imgAspect > rectAspect) {
+          drawHeight = offscreen.height;
+          drawWidth = drawHeight * imgAspect;
+          drawX = (offscreen.width - drawWidth) / 2;
+          drawY = 0;
+        } else {
+          drawWidth = offscreen.width;
+          drawHeight = drawWidth / imgAspect;
+          drawX = 0;
+          drawY = (offscreen.height - drawHeight) / 2;
+        }
+
+        offCtx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+
+        // Dark gradient overlay at bottom
+        const gradientHeight = offscreen.height * 0.4;
+        const gradient = offCtx.createLinearGradient(
+          0, offscreen.height - gradientHeight,
+          0, offscreen.height
+        );
+        gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
+        gradient.addColorStop(0.5, "rgba(0, 0, 0, 0.5)");
+        gradient.addColorStop(1, "rgba(0, 0, 0, 0.85)");
+        offCtx.fillStyle = gradient;
+        offCtx.fillRect(0, offscreen.height - gradientHeight, offscreen.width, gradientHeight);
+
+        // "Love" text
+        const fontSize = 55;
+        offCtx.font = `italic 700 ${fontSize}px "Playfair Display", Georgia, serif`;
+        offCtx.textAlign = "center";
+        offCtx.textBaseline = "bottom";
+
+        const textX = offscreen.width / 2;
+        const textY = offscreen.height - 25;
+
+        offCtx.shadowColor = "rgba(255, 107, 157, 0.7)";
+        offCtx.shadowBlur = 20;
+        offCtx.fillStyle = "rgba(255, 255, 255, 0.95)";
+        offCtx.fillText(slideTitle, textX, textY);
+
+        offCtx.shadowBlur = 0;
+        offCtx.fillStyle = "#ffffff";
+        offCtx.fillText(slideTitle, textX, textY);
+      }
+
+      slideCanvases.push(offscreen);
+    }
+
     function updateTexture(offset = 0) {
       ctx.fillStyle = "#0a0a0a";
       ctx.fillRect(0, 0, textureCanvas.width, textureCanvas.height);
 
-      const extraSlides = 3;
+      const extraSlides = 2;
+      const slideXOffset = textureCanvas.width * 0.05;
 
       for (let i = -extraSlides; i < totalSlides + extraSlides; i++) {
         let slideY = -i * (slideHeight + gap);
@@ -127,95 +192,34 @@ window.addEventListener("load", () => {
 
         let slideIndex = ((-i % totalSlides) + totalSlides) % totalSlides;
 
-        const slideRect = {
-          x: textureCanvas.width * 0.05,
-          y: wrappedY,
-          width: textureCanvas.width * 0.9,
-          height: (slideHeight / cycleHeight) * textureCanvas.height,
-        };
-
-        const img = images[slideIndex];
-        if (img) {
-          const imgAspect = img.width / img.height;
-          const rectAspect = slideRect.width / slideRect.height;
-
-          let drawWidth, drawHeight, drawX, drawY;
-
-          if (imgAspect > rectAspect) {
-            drawHeight = slideRect.height;
-            drawWidth = drawHeight * imgAspect;
-            drawX = slideRect.x + (slideRect.width - drawWidth) / 2;
-            drawY = slideRect.y;
-          } else {
-            drawWidth = slideRect.width;
-            drawHeight = drawWidth / imgAspect;
-            drawX = slideRect.x;
-            drawY = slideRect.y + (slideRect.height - drawHeight) / 2;
-          }
-
-          ctx.save();
-          ctx.beginPath();
-          ctx.roundRect(
-            slideRect.x,
-            slideRect.y,
-            slideRect.width,
-            slideRect.height
-          );
-          ctx.clip();
-          ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
-
-          // Dark gradient overlay at bottom for text readability
-          const gradientHeight = slideRect.height * 0.45;
-          const gradient = ctx.createLinearGradient(
-            0,
-            slideRect.y + slideRect.height - gradientHeight,
-            0,
-            slideRect.y + slideRect.height
-          );
-          gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
-          gradient.addColorStop(0.5, "rgba(0, 0, 0, 0.5)");
-          gradient.addColorStop(1, "rgba(0, 0, 0, 0.85)");
-          ctx.fillStyle = gradient;
-          ctx.fillRect(
-            slideRect.x,
-            slideRect.y + slideRect.height - gradientHeight,
-            slideRect.width,
-            gradientHeight
-          );
-
-          ctx.restore();
-
-          // Draw "Love" text
-          const fontSize = 110;
-          ctx.save();
-          ctx.font = `italic 700 ${fontSize}px "Playfair Display", Georgia, serif`;
-          ctx.textAlign = "center";
-          ctx.textBaseline = "bottom";
-
-          const textX = textureCanvas.width / 2;
-          const textY = wrappedY + slideRect.height - 50;
-
-          ctx.shadowColor = "rgba(255, 107, 157, 0.7)";
-          ctx.shadowBlur = 30;
-          ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
-          ctx.fillText(slideTitle, textX, textY);
-
-          ctx.shadowBlur = 0;
-          ctx.fillStyle = "#ffffff";
-          ctx.fillText(slideTitle, textX, textY);
-
-          ctx.restore();
+        const cached = slideCanvases[slideIndex];
+        if (cached) {
+          ctx.drawImage(cached, slideXOffset, wrappedY, slideRectWidth, slideRectHeight);
         }
       }
 
       texture.needsUpdate = true;
     }
 
+    // Use rAF-batched scroll updates instead of updating on every scroll tick
     let currentScroll = 0;
-    lenis.on("scroll", ({ scroll, limit, velocity, direction, progress }) => {
-      currentScroll = scroll / limit;
+    let lastRenderedScroll = -1;
+    let renderQueued = false;
+
+    function renderFrame() {
+      renderQueued = false;
+      if (currentScroll === lastRenderedScroll) return;
+      lastRenderedScroll = currentScroll;
       updateTexture(-currentScroll);
       renderer.render(scene, camera);
+    }
+
+    lenis.on("scroll", ({ scroll, limit }) => {
+      currentScroll = scroll / limit;
+      if (!renderQueued) {
+        renderQueued = true;
+        requestAnimationFrame(renderFrame);
+      }
     });
 
     let resizeTimeout;
@@ -225,6 +229,7 @@ window.addEventListener("load", () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.render(scene, camera);
       }, 250);
     });
 
