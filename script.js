@@ -109,26 +109,7 @@ window.addEventListener("load", () => {
     camera.lookAt(0, -2, 0);
     camera.rotation.z = THREE.MathUtils.degToRad(-5);
 
-    // Romantic captions — 3–4 words each, one per picture
-    const slideTitles = [
-      "Our Pizza Nights 🍕",        // 1  – Dominos date
-      "Late Night Drives ✨",        // 2  – car ride smiling
-      "Exploring Together Always",   // 3  – colorful prayer flags
-      "You & Me 💕",                 // 4  – elevator mirror selfie
-      "My Handsome Boy",             // 5  – Sunil close-up purple light
-      "Park Days Forever 🌿",       // 6  – coconut in park
-      "Cutest Moments Ever",         // 7  – Prachi with baby
-      "Night Out Vibes ✨",          // 8  – mall night standing
-      "Cozy Lazy Mornings",          // 9  – playful on bed
-      "My Pretty Girl 🌺",          // 10 – outdoor garden pose
-      "That Beautiful Smile 😊",    // 11 – selfie with glasses
-      "Candid & Gorgeous ☕",        // 12 – café with phone
-      "Us Against World 💫",        // 13 – couple selfie together
-      "Peace & Love ✌️",            // 14 – peace sign selfie
-      "Forever My Sunshine ☀️",     // 15 – pretty smiling selfie
-      "Missing Your Face 🥺",       // 16 – close-up cute
-      "Foodie Adventures 🍴",       // 17 – street food together
-    ];
+    const slideTitle = "Love";
 
     function updateTexture(offset = 0) {
       ctx.fillStyle = "#0a0a0a";
@@ -183,7 +164,7 @@ window.addEventListener("load", () => {
           ctx.clip();
           ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
 
-          // Dark gradient overlay at bottom of each slide for text readability
+          // Dark gradient overlay at bottom for text readability
           const gradientHeight = slideRect.height * 0.45;
           const gradient = ctx.createLinearGradient(
             0,
@@ -204,7 +185,7 @@ window.addEventListener("load", () => {
 
           ctx.restore();
 
-          // Draw caption text with glow effect at bottom of slide
+          // Draw "Love" text
           const fontSize = 110;
           ctx.save();
           ctx.font = `italic 700 ${fontSize}px "Playfair Display", Georgia, serif`;
@@ -214,16 +195,14 @@ window.addEventListener("load", () => {
           const textX = textureCanvas.width / 2;
           const textY = wrappedY + slideRect.height - 50;
 
-          // Glow effect
           ctx.shadowColor = "rgba(255, 107, 157, 0.7)";
           ctx.shadowBlur = 30;
           ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
-          ctx.fillText(slideTitles[slideIndex], textX, textY);
+          ctx.fillText(slideTitle, textX, textY);
 
-          // Second pass for crispness
           ctx.shadowBlur = 0;
           ctx.fillStyle = "#ffffff";
-          ctx.fillText(slideTitles[slideIndex], textX, textY);
+          ctx.fillText(slideTitle, textX, textY);
 
           ctx.restore();
         }

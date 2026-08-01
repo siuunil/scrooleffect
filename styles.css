@@ -13,97 +13,24 @@ body {
   color: #fff;
 }
 
-p {
-  font-size: 13px;
-  font-weight: 300;
-  line-height: 1.5;
-  opacity: 0.6;
-  letter-spacing: 0.5px;
-}
-
-p#logo {
-  opacity: 1;
-  font-family: "Playfair Display", serif;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  background: linear-gradient(135deg, #ff6b9d, #c44dff, #ff6b9d);
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: shimmer 3s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-.heart {
-  display: inline-block;
-  animation: heartbeat 1.2s ease-in-out infinite;
-  font-size: 22px;
-}
-
-@keyframes heartbeat {
-  0%, 100% { transform: scale(1); }
-  15% { transform: scale(1.25); }
-  30% { transform: scale(1); }
-  45% { transform: scale(1.15); }
-  60% { transform: scale(1); }
-}
-
-nav {
-  position: fixed;
-  top: 0;
-  width: 100vw;
-  padding: 2em;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 2;
-  backdrop-filter: blur(8px);
-  background: linear-gradient(180deg, rgba(10, 10, 10, 0.7) 0%, transparent 100%);
-}
-
-.nav-links {
-  display: flex;
-  gap: 2em;
-}
-
-.nav-links p {
-  font-family: "Inter", sans-serif;
-  font-weight: 400;
-  opacity: 0.5;
-  transition: opacity 0.3s ease;
-  cursor: default;
-}
-
-.nav-links p:hover {
-  opacity: 1;
-}
-
 footer {
   position: fixed;
   bottom: 0;
   width: 100vw;
   padding: 2em;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   z-index: 2;
-  backdrop-filter: blur(8px);
-  background: linear-gradient(0deg, rgba(10, 10, 10, 0.7) 0%, transparent 100%);
 }
 
-footer p:last-child {
-  animation: fadeInOut 2.5s ease-in-out infinite;
-}
-
-@keyframes fadeInOut {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.8; }
+#footer-text {
+  font-family: "Playfair Display", serif;
+  font-size: 13px;
+  font-weight: 400;
+  font-style: italic;
+  opacity: 0.5;
+  letter-spacing: 1px;
 }
 
 .slider-wrapper {
