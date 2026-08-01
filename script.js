@@ -1,11 +1,4 @@
 window.addEventListener("load", () => {
-  const lenis = new Lenis();
-  function raf(time) {
-    lenis.raf(time);
-    requestAnimationFrame(raf);
-  }
-  requestAnimationFrame(raf);
-
   const images = [];
   let loadedImageCount = 0;
   const totalSlides = 17;
@@ -110,7 +103,7 @@ window.addEventListener("load", () => {
 
     const slideTitle = "Love";
 
-    // Pre-render slide images to offscreen canvases so we don't re-process them each frame
+    // Pre-render slides to offscreen canvases
     const slideCanvases = [];
     const slideRectHeight = (slideHeight / cycleHeight) * textureCanvas.height;
     const slideRectWidth = textureCanvas.width * 0.9;
@@ -141,7 +134,6 @@ window.addEventListener("load", () => {
 
         offCtx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
 
-        // Dark gradient overlay at bottom
         const gradientHeight = offscreen.height * 0.4;
         const gradient = offCtx.createLinearGradient(
           0, offscreen.height - gradientHeight,
@@ -153,7 +145,6 @@ window.addEventListener("load", () => {
         offCtx.fillStyle = gradient;
         offCtx.fillRect(0, offscreen.height - gradientHeight, offscreen.width, gradientHeight);
 
-        // "Love" text
         const fontSize = 55;
         offCtx.font = `italic 700 ${fontSize}px "Playfair Display", Georgia, serif`;
         offCtx.textAlign = "center";
@@ -201,26 +192,46 @@ window.addEventListener("load", () => {
       texture.needsUpdate = true;
     }
 
-    // Use rAF-batched scroll updates instead of updating on every scroll tick
-    let currentScroll = 0;
-    let lastRenderedScroll = -1;
-    let renderQueued = false;
+    // Infinite smooth scroll — no page scroll needed
+    let targetScroll = 0;
+    let currentSmooth = 0;
+    const scrollSpeed = 0.0004;
+    const smoothness = 0.075;
 
-    function renderFrame() {
-      renderQueued = false;
-      if (currentScroll === lastRenderedScroll) return;
-      lastRenderedScroll = currentScroll;
-      updateTexture(-currentScroll);
-      renderer.render(scene, camera);
-    }
+    // Mouse wheel
+    window.addEventListener("wheel", (e) => {
+      targetScroll += e.deltaY * scrollSpeed;
+    }, { passive: true });
 
-    lenis.on("scroll", ({ scroll, limit }) => {
-      currentScroll = scroll / limit;
-      if (!renderQueued) {
-        renderQueued = true;
-        requestAnimationFrame(renderFrame);
+    // Touch support for mobile
+    let touchStartY = 0;
+    let lastTouchY = 0;
+
+    window.addEventListener("touchstart", (e) => {
+      touchStartY = e.touches[0].clientY;
+      lastTouchY = touchStartY;
+    }, { passive: true });
+
+    window.addEventListener("touchmove", (e) => {
+      const touchY = e.touches[0].clientY;
+      const delta = lastTouchY - touchY;
+      lastTouchY = touchY;
+      targetScroll += delta * scrollSpeed * 2.5;
+    }, { passive: true });
+
+    // Animation loop with smooth lerp
+    function animate() {
+      const prev = currentSmooth;
+      currentSmooth += (targetScroll - currentSmooth) * smoothness;
+
+      // Only re-render when there's actual movement
+      if (Math.abs(currentSmooth - prev) > 0.000001) {
+        updateTexture(-currentSmooth);
+        renderer.render(scene, camera);
       }
-    });
+
+      requestAnimationFrame(animate);
+    }
 
     let resizeTimeout;
     window.addEventListener("resize", () => {
@@ -229,12 +240,14 @@ window.addEventListener("load", () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
+        updateTexture(-currentSmooth);
         renderer.render(scene, camera);
       }, 250);
     });
 
     updateTexture(0);
     renderer.render(scene, camera);
+    animate();
   }
 
   loadImages();
