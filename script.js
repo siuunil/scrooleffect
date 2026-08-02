@@ -1,11 +1,4 @@
 window.addEventListener("load", () => {
-  const lenis = new Lenis();
-  function raf(time) {
-    lenis.raf(time);
-    requestAnimationFrame(raf);
-  }
-  requestAnimationFrame(raf);
-
   const images = [];
   let loadedImageCount = 0;
   const totalSlides = 17;
@@ -33,24 +26,25 @@ window.addEventListener("load", () => {
   function initializeScene() {
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
-      45,
+      55,
       window.innerWidth / window.innerHeight,
       0.1,
       1000
     );
 
     const renderer = new THREE.WebGLRenderer({
-      canvas: document.querySelector("canvas"),
+      canvas: document.getElementById("scrollCanvas"),
       antialias: false,
       powerPreference: "high-performance",
+      alpha: true,
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-    renderer.setClearColor(0x0a0a0a);
+    renderer.setClearColor(0x000000, 0);
 
     const parentWidth = 20;
     const parentHeight = 180;
-    const curvature = 35;
+    const curvature = 55;
     const segmentsX = 60;
     const segmentsY = 120;
 
@@ -75,7 +69,7 @@ window.addEventListener("load", () => {
 
     const textureCanvas = document.createElement("canvas");
     const ctx = textureCanvas.getContext("2d", {
-      alpha: false,
+      alpha: true,
       willReadFrequently: false,
     });
     textureCanvas.width = 1024;
@@ -91,21 +85,22 @@ window.addEventListener("load", () => {
     const parentMaterial = new THREE.MeshBasicMaterial({
       map: texture,
       side: THREE.DoubleSide,
+      transparent: true,
     });
 
     const parentMesh = new THREE.Mesh(parentGeometry, parentMaterial);
     parentMesh.position.set(0, 0, 0);
-    parentMesh.rotation.x = THREE.MathUtils.degToRad(-20);
+    parentMesh.rotation.x = THREE.MathUtils.degToRad(-28);
     parentMesh.rotation.y = THREE.MathUtils.degToRad(20);
     scene.add(parentMesh);
 
-    const distance = 17.5;
-    const heightOffset = 5;
+    const distance = 9.5;
+    const heightOffset = 4.5;
     const offsetX = distance * Math.sin(THREE.MathUtils.degToRad(20));
     const offsetZ = distance * Math.cos(THREE.MathUtils.degToRad(20));
 
     camera.position.set(offsetX, heightOffset, offsetZ);
-    camera.lookAt(0, -2, 0);
+    camera.lookAt(-0.7, -2.5, 0);
     camera.rotation.z = THREE.MathUtils.degToRad(-5);
 
     const slideTitle = "Love";
@@ -123,6 +118,12 @@ window.addEventListener("load", () => {
 
       const img = images[s];
       if (img) {
+        // Clip to squircle (rounded rectangle)
+        const radius = 30;
+        offCtx.beginPath();
+        offCtx.roundRect(0, 0, offscreen.width, offscreen.height, radius);
+        offCtx.clip();
+
         const imgAspect = img.width / img.height;
         const rectAspect = offscreen.width / offscreen.height;
 
@@ -152,30 +153,20 @@ window.addEventListener("load", () => {
         offCtx.fillStyle = gradient;
         offCtx.fillRect(0, offscreen.height - gradientHeight, offscreen.width, gradientHeight);
 
-        const fontSize = 55;
-        offCtx.font = `italic 700 ${fontSize}px "Playfair Display", Georgia, serif`;
-        offCtx.textAlign = "center";
+        const fontSize = 18;
+        offCtx.font = `400 ${fontSize}px "Inter", sans-serif`;
+        offCtx.textAlign = "left";
         offCtx.textBaseline = "bottom";
-
-        const textX = offscreen.width / 2;
-        const textY = offscreen.height - 25;
-
-        offCtx.shadowColor = "rgba(255, 107, 157, 0.7)";
-        offCtx.shadowBlur = 20;
-        offCtx.fillStyle = "rgba(255, 255, 255, 0.95)";
-        offCtx.fillText(slideTitle, textX, textY);
-
         offCtx.shadowBlur = 0;
-        offCtx.fillStyle = "#ffffff";
-        offCtx.fillText(slideTitle, textX, textY);
+        offCtx.fillStyle = "#4169E1";
+        offCtx.fillText("Was Once Mine ~", 20, offscreen.height - 15);
       }
 
       slideCanvases.push(offscreen);
     }
 
     function updateTexture(offset = 0) {
-      ctx.fillStyle = "#0a0a0a";
-      ctx.fillRect(0, 0, textureCanvas.width, textureCanvas.height);
+      ctx.clearRect(0, 0, textureCanvas.width, textureCanvas.height);
 
       const extraSlides = 2;
       const slideXOffset = textureCanvas.width * 0.05;
@@ -199,26 +190,46 @@ window.addEventListener("load", () => {
       texture.needsUpdate = true;
     }
 
-    // Use Lenis scroll-driven updates for smooth bend effect
-    let currentScroll = 0;
-    let lastRenderedScroll = -1;
-    let renderQueued = false;
+    // Infinite smooth scroll — no page scroll needed
+    let targetScroll = 0;
+    let currentSmooth = 0;
+    const scrollSpeed = 0.00008;
+    const smoothness = 0.075;
 
-    function renderFrame() {
-      renderQueued = false;
-      if (currentScroll === lastRenderedScroll) return;
-      lastRenderedScroll = currentScroll;
-      updateTexture(-currentScroll);
-      renderer.render(scene, camera);
-    }
+    // Mouse wheel
+    window.addEventListener("wheel", (e) => {
+      targetScroll += e.deltaY * scrollSpeed;
+    }, { passive: true });
 
-    lenis.on("scroll", ({ scroll, limit }) => {
-      currentScroll = scroll / limit;
-      if (!renderQueued) {
-        renderQueued = true;
-        requestAnimationFrame(renderFrame);
+    // Touch support for mobile
+    let touchStartY = 0;
+    let lastTouchY = 0;
+
+    window.addEventListener("touchstart", (e) => {
+      touchStartY = e.touches[0].clientY;
+      lastTouchY = touchStartY;
+    }, { passive: true });
+
+    window.addEventListener("touchmove", (e) => {
+      const touchY = e.touches[0].clientY;
+      const delta = lastTouchY - touchY;
+      lastTouchY = touchY;
+      targetScroll += delta * scrollSpeed * 2.5;
+    }, { passive: true });
+
+    // Animation loop with smooth lerp
+    function animate() {
+      const prev = currentSmooth;
+      currentSmooth += (targetScroll - currentSmooth) * smoothness;
+
+      // Only re-render when there's actual movement
+      if (Math.abs(currentSmooth - prev) > 0.000001) {
+        updateTexture(-currentSmooth);
+        renderer.render(scene, camera);
       }
-    });
+
+      requestAnimationFrame(animate);
+    }
 
     let resizeTimeout;
     window.addEventListener("resize", () => {
@@ -227,13 +238,14 @@ window.addEventListener("load", () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-        updateTexture(-currentScroll);
+        updateTexture(-currentSmooth);
         renderer.render(scene, camera);
       }, 250);
     });
 
     updateTexture(0);
     renderer.render(scene, camera);
+    animate();
   }
 
   loadImages();

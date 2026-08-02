@@ -7,7 +7,8 @@
 html,
 body {
   width: 100%;
-  height: 2500vh;
+  height: 100vh;
+  overflow: hidden;
   font-family: "Inter", sans-serif;
   background: #0a0a0a;
   color: #fff;
@@ -38,14 +39,34 @@ footer {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+  z-index: 1;
 }
 
-canvas {
+#sakura {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+}
+
+#scrollCanvas {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+}
+
+#sakuraFront {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 3;
+  pointer-events: none;
 }
 
 .overlay {
@@ -55,14 +76,12 @@ canvas {
   width: 100vw;
   height: 100vh;
   background:
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 15%),
-    linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 15%),
     radial-gradient(
       ellipse at center,
-      rgba(0, 0, 0, 0) 60%,
-      rgba(0, 0, 0, 0.4) 80%,
-      rgba(0, 0, 0, 0.7) 100%
+      rgba(0, 0, 0, 0) 65%,
+      rgba(0, 0, 0, 0.15) 85%,
+      rgba(0, 0, 0, 0.3) 100%
     );
-  z-index: 1;
+  z-index: 2;
   pointer-events: none;
 }
