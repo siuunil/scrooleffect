@@ -3,24 +3,17 @@ window.addEventListener("load", () => {
   let loadedImageCount = 0;
   const totalSlides = 17;
 
-  function loadImages() {
-    for (let i = 1; i <= totalSlides; i++) {
-      const img = new Image();
-      img.onload = function () {
-        images[i - 1] = img;
-        loadedImageCount++;
-        if (loadedImageCount === totalSlides) {
-          initializeScene();
-        }
-      };
-      img.onerror = function () {
-        loadedImageCount++;
-        if (loadedImageCount === totalSlides) {
-          initializeScene();
-        }
-      };
-      img.src = `./assets/${i}.jpeg`;
-    }
+  // Preload images immediately so they're cached when needed
+  for (let i = 1; i <= totalSlides; i++) {
+    const img = new Image();
+    img.onload = function () {
+      images[i - 1] = img;
+      loadedImageCount++;
+    };
+    img.onerror = function () {
+      loadedImageCount++;
+    };
+    img.src = `./assets/${i}.jpeg`;
   }
 
   function initializeScene() {
@@ -248,5 +241,17 @@ window.addEventListener("load", () => {
     animate();
   }
 
-  loadImages();
+  // Expose global function — called by loader.js when user clicks (Phase 3)
+  window.initScrollEffect = function () {
+    if (loadedImageCount >= totalSlides) {
+      initializeScene();
+    } else {
+      var checkInterval = setInterval(function () {
+        if (loadedImageCount >= totalSlides) {
+          clearInterval(checkInterval);
+          initializeScene();
+        }
+      }, 100);
+    }
+  };
 });

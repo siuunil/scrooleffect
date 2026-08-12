@@ -7,9 +7,52 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito+Sans:regular,600,700,800,900&display=swap" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+    <!-- ═══ Loading Screen ═══ -->
+    <div class="loading-screen">
+      <div class="loader">
+        <div class="loader-1 bar"></div>
+        <div class="loader-2 bar"></div>
+      </div>
+      <div class="counter">
+        <div class="counter-1 digit">
+          <div class="num">0</div>
+          <div class="num num1offset1">1</div>
+        </div>
+        <div class="counter-2 digit">
+          <div class="num">0</div>
+          <div class="num num1offset2">1</div>
+          <div class="num">2</div>
+          <div class="num">3</div>
+          <div class="num">4</div>
+          <div class="num">5</div>
+          <div class="num">6</div>
+          <div class="num">7</div>
+          <div class="num">8</div>
+          <div class="num">9</div>
+          <div class="num">0</div>
+        </div>
+        <div class="counter-3 digit">
+          <div class="num">0</div>
+          <div class="num">1</div>
+          <div class="num">2</div>
+          <div class="num">3</div>
+          <div class="num">4</div>
+          <div class="num">5</div>
+          <div class="num">6</div>
+          <div class="num">7</div>
+          <div class="num">8</div>
+          <div class="num">9</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Water Ripple Background ═══ -->
+    <canvas id="waterCanvas"></canvas>
+
     <!-- Sakura background layer -->
     <canvas id="sakura"></canvas>
 
@@ -212,6 +255,9 @@ void main(void) {
 
     <div class="overlay"></div>
 
+    <!-- Click hint for Phase 2 → Phase 3 -->
+    <div id="clickHint" class="click-hint">click anywhere</div>
+
     <!-- Background Audio -->
     <audio id="bgAudio" loop preload="auto">
       <source src="./barsaat.mp3" type="audio/mpeg">
@@ -237,10 +283,13 @@ void main(void) {
     <!-- Foreground large petals for 3D depth -->
     <canvas id="sakuraFront"></canvas>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="./sakura-bg.js"></script>
     <script src="./sakura.js"></script>
     <script src="./script.js"></script>
+    <script src="./water.js"></script>
     <script src="./audio.js"></script>
+    <script src="./loader.js"></script>
   </body>
 </html>

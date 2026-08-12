@@ -33,8 +33,8 @@
     }, interval);
   }
 
-  // Start audio on first user interaction (required by browsers)
-  function startAudio() {
+  // Exposed global function — called by loader.js after loading screen finishes
+  window.startBgAudio = function () {
     if (hasStarted) return;
     hasStarted = true;
 
@@ -42,31 +42,17 @@
       fadeIn();
     }).catch((err) => {
       console.warn("Audio autoplay blocked:", err);
-      hasStarted = false; // Allow retry
+      hasStarted = false; // Allow retry on next interaction
     });
-
-    // Remove listeners after first successful start
-    if (hasStarted) {
-      document.removeEventListener("click", startAudio);
-      document.removeEventListener("wheel", startAudio);
-      document.removeEventListener("touchstart", startAudio);
-      document.removeEventListener("keydown", startAudio);
-    }
-  }
-
-  // Listen for first user interaction
-  document.addEventListener("click", startAudio, { once: false });
-  document.addEventListener("wheel", startAudio, { once: false });
-  document.addEventListener("touchstart", startAudio, { once: false });
-  document.addEventListener("keydown", startAudio, { once: false });
+  };
 
   // Toggle button
   toggleBtn.addEventListener("click", (e) => {
     e.stopPropagation();
 
     if (!hasStarted) {
-      // First click — start audio
-      startAudio();
+      // First click on toggle — start audio
+      window.startBgAudio();
       return;
     }
 
