@@ -83,51 +83,14 @@
       ease: "power1.inOut",
       onComplete: function () {
         document.querySelector(".loading-screen").style.display = "none";
-        enterPhase2();
+        revealWebsite();
       },
     });
 
-    // ─── Phase 2: Water Effect + Sakura Petals ───
-    function enterPhase2() {
-      // Start water ripple background
-      if (window.startWaterEffect) window.startWaterEffect();
-
+    // ─── Reveal Full Website (After Loading Screen) ───
+    function revealWebsite() {
       // Start background audio with fade-in
       if (window.startBgAudio) window.startBgAudio();
-
-      // Show click hint after a beat
-      var hint = document.getElementById("clickHint");
-      if (hint) {
-        setTimeout(function () {
-          hint.classList.add("visible");
-        }, 800);
-      }
-
-      // Listen for click to enter Phase 3
-      var clickHandler = function (e) {
-        // Don't trigger on music toggle
-        if (e.target.closest && e.target.closest(".music-toggle")) return;
-
-        document.removeEventListener("click", clickHandler);
-        document.removeEventListener("touchstart", clickHandler);
-        enterPhase3();
-      };
-
-      // Small delay so the click that might have started audio doesn't immediately trigger Phase 3
-      setTimeout(function () {
-        document.addEventListener("click", clickHandler);
-        document.addEventListener("touchstart", clickHandler);
-      }, 300);
-    }
-
-    // ─── Phase 3: Full Website with Scroll Photos ───
-    function enterPhase3() {
-      // Hide click hint
-      var hint = document.getElementById("clickHint");
-      if (hint) hint.classList.remove("visible");
-
-      // Stop and fade out water effect
-      if (window.stopWaterEffect) window.stopWaterEffect();
 
       // Show sakura background canvas
       var sakuraCanvas = document.getElementById("sakura");

@@ -13,7 +13,7 @@ window.addEventListener("load", () => {
     img.onerror = function () {
       loadedImageCount++;
     };
-    img.src = `./assets/${i}.jpeg`;
+    img.src = `./assets/${i}.png`;
   }
 
   function initializeScene() {
